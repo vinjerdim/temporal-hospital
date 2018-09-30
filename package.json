@@ -1,0 +1,30 @@
+{
+  "name": "temporal-hospital",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vinjerdim/temporal-hospital.git"
+  },
+  "keywords": [
+    "Temporal",
+    "Database",
+    "Temporal",
+    "SQL"
+  ],
+  "author": "AkmalF, Marvin, Rafid, AkmalP",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vinjerdim/temporal-hospital/issues"
+  },
+  "homepage": "https://github.com/vinjerdim/temporal-hospital#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "marklogic": "^2.1.1"
+  }
+}
