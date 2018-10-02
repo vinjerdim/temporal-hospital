@@ -1,9 +1,22 @@
 var express = require('express');
 var router = express.Router();
 
-var connInfo = require('./db_config.js');
-const marklogic = require('marklogic');
-const db = marklogic.createDatabaseClient(connInfo);
+function insertRecord(record) {
+    var connInfo = require('./db_config.js');
+    var marklogic = require('marklogic');
+    var db = marklogic.createDatabaseClient(connInfo);
+    db.documents.write(record).result( 
+        function(response) {
+            console.log('Loaded the following documents:');
+            response.documents.forEach(function(document) {
+                console.log(document);
+            });
+        }, 
+        function(error) {
+            console.log(JSON.stringify(error, null, 2));
+        }
+    );
+}
 
 function load_patients() {
     const patients = require("./patient.json");
@@ -13,17 +26,7 @@ function load_patients() {
             'content' : patient,
             'collections' : ['patient']
         };
-        db.documents.write(record).result( 
-            function(response) {
-                console.log('Loaded the following documents:');
-                response.documents.forEach(function(document) {
-                    console.log(document);
-                });
-            }, 
-            function(error) {
-                console.log(JSON.stringify(error, null, 2));
-            }
-        );
+        insertRecord(record);
     });
 }
 
@@ -35,23 +38,26 @@ function load_doctors() {
             'content' : doctor,
             'collections' : ['doctor']
         };
-        db.documents.write(record).result( 
-            function(response) {
-                console.log('Loaded the following documents:');
-                response.documents.forEach(function(document) {
-                    console.log(document);
-                });
-            }, 
-            function(error) {
-                console.log(JSON.stringify(error, null, 2));
-            }
-        );
+        insertRecord(record);
+    });
+}
+
+function load_treatment() {
+    const treatments = require("./treatment.json");
+    treatments.forEach(treatment => {
+        var record = {
+            'uri' : `/treatment/${treatment.patient_id}_${treatment.doctor_id}`,
+            'content' : treatment,
+            'collections' : ['treatment']
+        };
+        insertRecord(record);
     });
 }
 
 router.get('/load', function (request, response) {
     load_patients();
     load_doctors();
+    load_treatment();
     response.send('Database initialized');
 });
 
