@@ -5,12 +5,7 @@ const bodyParser     = require('body-parser');
 const port           = 8123;
 const app            = express();
 
-var connInfo = {
-    host: 'localhost',
-    port: 8000,
-    user: 'hospital',
-    password: 'Hospital1234'
-};
+var connInfo = require('./db_config.js');
 
 const marklogic = require('marklogic');
 const db = marklogic.createDatabaseClient(connInfo);
@@ -21,7 +16,7 @@ patients.forEach(patient => {
         'uri' : '/patient/' + patient.patient_id,
         'content' : patient,
         'collections' : ['patient']
-    }
+    };
     db.documents.write(record).result( 
         function(response) {
             console.log('Loaded the following documents:');
@@ -41,7 +36,7 @@ doctors.forEach(doctor => {
         'uri' : '/doctor/' + doctor.doctor_id,
         'content' : doctor,
         'collections' : ['doctor']
-    }
+    };
     db.documents.write(record).result( 
         function(response) {
             console.log('Loaded the following documents:');
