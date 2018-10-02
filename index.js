@@ -64,8 +64,6 @@ app.get('/', function(request, response) {
     response.send('Temporal Hospital REST API');
 });
 
-app.post('/insert')
-
 app.listen(port, () => {
     console.log('Temporal Hospital REST API is running on ' + port);
 });
