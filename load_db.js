@@ -48,11 +48,13 @@ function load_treatment() {
         var record = {
             'uri' : `/treatment/${treatment.patient_id}_${treatment.doctor_id}`,
             'temporalCollection': 'treatment',
-            'content' : 'treatment' : {
-                'patient_id': treatment.patient_id,
-                'doctor_id': treatment.doctor_id,
-                'room': treatment.room,
-                'disease': treatment.disease
+            'content' : {
+                'treatment': {
+                    'patient_id': treatment.patient_id,
+                    'doctor_id': treatment.doctor_id,
+                    'room': treatment.room,
+                    'disease': treatment.disease
+                }
             },
             'metadataValues': {
                 'validStart': treatment.valid_start,

@@ -6,8 +6,6 @@ const port           = 8123;
 const app            = express();
 const dateTime = require('node-datetime');
 const marklogic = require('marklogic');
-//const markLogiConn = require('./markLogicConn');
-//const db = marklogic.createDatabaseClient(markLogiConn.connInfo);
 var connInfo = require('./db_config.js');
 var db = marklogic.createDatabaseClient(connInfo);
 const qb = marklogic.queryBuilder;
@@ -306,7 +304,7 @@ app.get("/project", function(request, response) {
 		  	}
 		);
 	} else {
-		console.log("No Given Attrbute to Project");
+		console.log("No Given Attribute to Project");
 		response.status(200).send("Please specify attribute to project");
 	}
 });
