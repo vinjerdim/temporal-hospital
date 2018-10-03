@@ -47,8 +47,18 @@ function load_treatment() {
     treatments.forEach(treatment => {
         var record = {
             'uri' : `/treatment/${treatment.patient_id}_${treatment.doctor_id}`,
-            'content' : treatment,
-            'collections' : ['treatment']
+            'temporalCollection': 'treatment',
+            'content' : 'treatment' : {
+                'patient_id': treatment.patient_id,
+                'doctor_id': treatment.doctor_id,
+                'room': treatment.room,
+                'disease': treatment.disease
+            },
+            'metadataValues': {
+                'validStart': treatment.valid_start,
+                'validEnd': treatment.valid_end
+            }
+            //'collections' : ['treatment']
         };
         insertRecord(record);
     });

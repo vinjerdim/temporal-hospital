@@ -6,8 +6,10 @@ const port           = 8123;
 const app            = express();
 const dateTime = require('node-datetime');
 const marklogic = require('marklogic');
-const markLogiConn = require('./markLogicConn');
-const db = marklogic.createDatabaseClient(markLogiConn.connInfo);
+//const markLogiConn = require('./markLogicConn');
+//const db = marklogic.createDatabaseClient(markLogiConn.connInfo);
+var connInfo = require('./db_config.js');
+var db = marklogic.createDatabaseClient(connInfo);
 const qb = marklogic.queryBuilder;
 const pb = marklogic.patchBuilder;
 
@@ -183,6 +185,20 @@ app.post('/insert', function(request, response) {
 	        validEnd: valid_end
 	    }
     };
+  //   var treatment = { 
+		// uri: uri,
+		// temporalCollection: 'treatment',
+		// content: {
+  //     		"patient_id": patientID,
+  //     		"doctor_id": doctorID,
+  //     		"room": room,
+  //     		"disease": disease
+		// },
+		// metadataValues: {
+		// 	validStart: valid_start,
+	 //        validEnd: valid_end
+	 //    }
+  //   };
     db.documents.write(treatment).result(  
 	  function(writeResp) {
 		console.log(writeResp);
