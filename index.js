@@ -12,6 +12,7 @@ const qb = marklogic.queryBuilder;
 const pb = marklogic.patchBuilder;
 
 var dbInit = require('./load_db.js');
+var allen = require('./allen.js');
 
 app.use(bodyParser.json());         // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
@@ -19,6 +20,7 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 })); 
 
 app.use('/', dbInit);
+app.use('/allen', allen);
 
 app.get('/', function(request, response) {
     response.send('Temporal Hospital REST API');
