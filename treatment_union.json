@@ -1,0 +1,6 @@
+[{"patient_id":5,"doctor_id":17,"room":"tulip","disease":"heartache","valid_start":"2017-09-24T22:24:30Z","valid_end":"2017-09-30T09:51:39Z"},
+{"patient_id":20,"doctor_id":13,"room":"dahlia","disease":"headache","valid_start":"2017-09-07T16:50:00Z","valid_end":"2017-09-13T19:40:33Z"},
+{"patient_id":13,"doctor_id":7,"room":"kamboja","disease":"carcinoma","valid_start":"2017-09-05T20:04:22Z","valid_end":"2017-09-09T21:23:39Z"},
+{"patient_id":9,"doctor_id":25,"room":"kenanga","disease":"influenza","valid_start":"2017-09-21T08:13:42Z","valid_end":"2017-09-25T00:25:13Z"},
+{"patient_id":3,"doctor_id":1,"room":"melati","disease":"cancer","valid_start":"2017-09-12T05:57:53Z","valid_end":"2017-09-15T05:36:38Z"},
+{"patient_id":1,"doctor_id":30,"room":"mawar","disease":"tumor","valid_start":"2017-09-20T16:45:31Z","valid_end":"2017-09-24T13:36:24Z"}]

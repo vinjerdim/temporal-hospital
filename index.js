@@ -152,18 +152,40 @@ app.get('/test7', function(request, response) {
 	);
 });
 
-app.get("/all", function(request, response) {
+app.get("/treatment/all", function(request, response) {
 	db.documents.query(
-      	qb.where(qb.collection('treatment')).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999)
+      	qb.where(qb.and(qb.collection('treatment'), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
     ).result(
 	  	function(documents) {
-	  		console.log("All documents : \n" + JSON.stringify(documents, null, 3));
+	  		console.log("All  " + documents.length + " documents : \n" + JSON.stringify(documents, null, 3));
 			response.status(200).send(JSON.stringify(documents, null, 3));
 	  	}
 	);
 });
 
-app.post('/insert', function(request, response) {
+app.get("/treatment_diff/all", function(request, response) {
+	db.documents.query(
+      	qb.where(qb.and(qb.collection('treatment_diff'), qb.collection('latest'))).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999)
+    ).result(
+	  	function(documents) {
+	  		console.log("All  " + documents.length + " diff documents : \n" + JSON.stringify(documents, null, 3));
+			response.status(200).send(JSON.stringify(documents, null, 3));
+	  	}
+	);
+});
+
+app.get("/treatment_union/all", function(request, response) {
+	db.documents.query(
+      	qb.where(qb.and(qb.collection('treatment_union'), qb.collection('latest'))).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999)
+    ).result(
+	  	function(documents) {
+	  		console.log("All  " + documents.length + " diff documents : \n" + JSON.stringify(documents, null, 3));
+			response.status(200).send(JSON.stringify(documents, null, 3));
+	  	}
+	);
+});
+
+app.post('/treatment/insert', function(request, response) {
 	console.log('Get new POST request from ' + request.originalUrl);
     console.log('\t' + JSON.stringify(request.body));
 
@@ -194,20 +216,6 @@ app.post('/insert', function(request, response) {
 	        validEnd: valid_end
 	    }
     };
-  //   var treatment = { 
-		// uri: uri,
-		// temporalCollection: 'treatment',
-		// content: {
-  //     		"patient_id": patientID,
-  //     		"doctor_id": doctorID,
-  //     		"room": room,
-  //     		"disease": disease
-		// },
-		// metadataValues: {
-		// 	validStart: valid_start,
-	 //        validEnd: valid_end
-	 //    }
-  //   };
     db.documents.write(treatment).result(  
 	  function(result) {
 		console.log(result);
@@ -218,10 +226,9 @@ app.post('/insert', function(request, response) {
 	    console.log(JSON.stringify(error, null, 2));
 	  }
 	);
-    //response.status(200).send(JSON.stringify(treatment));
 });
 
-app.post("/update", function(request, response) {
+app.post("/treatment/update", function(request, response) {
 	console.log('Get new POST request from ' + request.originalUrl);
     console.log('\t' + JSON.stringify(request.body));
 
@@ -262,64 +269,38 @@ app.post("/update", function(request, response) {
 });
 
 
-app.get("/select", function(request, response) {
+app.get("/treatment/select", function(request, response) {
 	console.log('Get new GET request from ' + request.originalUrl);
     console.log('\t' + JSON.stringify(request.body));
 
     var query = request.param('query');
     var queryParams = query.split("=");
+
     if (queryParams.length != 2) {
     	response.status(200).send("Error! Query should follow the form 'key=value'");
     } else {
     	var queryKey = queryParams[0];
-	    if (queryKey === "disease") {
-		    var diseaseName = queryParams[1];
+    	var queryValue = queryParams[1];
 
-		    db.documents.query(
-			  qb.where(qb.byExample({disease: diseaseName})).withOptions({categories: ['content', 'metadata-values']})
+	    if (queryKey === "patient_id" || queryKey === "doctor_id" || queryKey === "disease" || queryKey === "room") {
+	    	db.documents.query(
+				qb.where(qb.and(qb.value(queryKey, queryValue), qb.collection('latest'))).withOptions({categories: ['content', 'metadata-values']})
 			).result( 
 				function(documents) {
-		    		console.log("Found documents : \n" + JSON.stringify(documents, null, 3));
+		    		console.log("Found " + documents.length + " documents : \n" + JSON.stringify(documents, null, 3));
 					response.status(200).send(JSON.stringify(documents, null, 3));
 				}, 
 				function(error) {
 				    console.log(JSON.stringify(error, null, 2));
 				}
 			);
-			// db.documents.query(qb.where(
-			//   	qb.parsedFrom('disease:'+diseaseName, qb.parseBindings(
-			//     	qb.value('disease', qb.bind('disease'))
-			//   	))
-			// ).withOptions({categories: ['content', 'metadata-values']})).result( 
-			// 	function(documents) {
-		 //    		console.log("Found documents : \n" + JSON.stringify(documents, null, 3));
-			// 		response.status(200).send(JSON.stringify(documents, null, 3));
-			// 	}, 
-			// 	function(error) {
-			// 	    console.log(JSON.stringify(error, null, 2));
-			// 	}
-			// );
-	    } else if (queryKey === "room") {
-	    	var roomName = queryParams[1];
-
-		    db.documents.query(
-			  qb.where(qb.byExample({room: roomName})).withOptions({categories: ['content', 'metadata-values']})
-			).result( 
-				function(documents) {
-		    		console.log("Found documents : \n" + JSON.stringify(documents, null, 3));
-					response.status(200).send(JSON.stringify(documents, null, 3));
-				}, 
-				function(error) {
-				    console.log(JSON.stringify(error, null, 2));
-				}
-			);
-	    } else {
+	  	} else {
 	    	response.status(200).send("Error! Unknown query parameter");
 	    }
     }
 });
 
-app.get("/project", function(request, response) {
+app.get("/treatment/project", function(request, response) {
 	var projectionParams = request.param('projection_keys');
 	var projectionKeys = projectionParams.split(",");
 	if (projectionKeys.length > 0) {
@@ -327,15 +308,15 @@ app.get("/project", function(request, response) {
 			projectionKeys[index] = "/treatment/" + key;
 		});
 		console.log("Projected attribute paths : " + JSON.stringify(projectionKeys, null, 1));
-		//response.status(200).send(JSON.stringify(projectionKeys, null, 3));
 		db.documents.query(
-	      	qb.where(qb.collection('treatment')).withOptions({categories: ['content', 'metadata-values']}).slice(qb.extract({
+	      	qb.where(qb.collection('treatment')).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999, qb.extract({
 		        paths: projectionKeys,
 		        selected: 'include-with-ancestors'
 		    }))
 	    ).result(
 		  	function(documents) {
-		  		console.log("Projection results : \n" + JSON.stringify(documents, null, 3));
+		  		console.log("Projection results length : \n" + documents.length);
+		  		console.log("\nProjection results : \n" + JSON.stringify(documents, null, 3));
 				response.status(200).send(JSON.stringify(documents, null, 10));
 		  	}
 		);
@@ -345,10 +326,10 @@ app.get("/project", function(request, response) {
 	}
 });
 
-app.get("/diff", function(request, response) {
-	var comparator = request.param('comparator');
-	console.log("Difference comparator : " + comparator);
-	db.documents.query(
+app.get("/treatment/diff", function(request, response) {
+	//var comparator = request.param('comparator');
+	//console.log("Difference comparator : " + comparator);
+	//db.documents.query(
 		// qb.where(qb.and(qb.notIn(qb.collection('treatment'),
 	 //        	qb.value('treatment', comparator)
 	 //    	)
@@ -357,17 +338,74 @@ app.get("/diff", function(request, response) {
 	 //        	qb.value('content', comparator)
 	 //    	)
 	 //  	).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999))
-		qb.where(
-		    qb.collection('treatment'),
-		    qb.or(
-		        qb.value('treatment', JSON.parse(comparator))
-		    )
-		).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999)
-	).result(
+		//qb.where(qb.collection('treatment'), qb.not(qb.collection('treatment_diff'))).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999)
+		// qb.where(qb.notIn(qb.collection('treatment'), qb.collection('treatment_diff'))).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999 , qb.extract({
+		//         paths: ['/uri'],
+		//         selected: 'exclude'
+		//     }))
+	// ).result(
+	//   	function(documents) {
+	//   		console.log("Difference results count: " + documents.length);
+	//   		//console.log("\nDifference results : \n" + JSON.stringify(documents, null, 3));
+	// 		response.status(200).send(JSON.stringify(documents, null, 3));
+	//   	}
+	// );
+	console.log('Get new GET request from ' + request.originalUrl);
+    console.log('\t' + JSON.stringify(request.body));
+
+    var query = request.param('query');
+    var queryParams = query.split("=");
+    if (queryParams.length != 2) {
+    	response.status(200).send("Error! Query should follow the form 'key=value'");
+    } else {
+    	var queryKey = queryParams[0];
+    	var queryValue = queryParams[1];
+
+    	if (queryKey === "patient_id" || queryKey === "doctor_id" || queryKey === "disease" || queryKey === "room") {
+	    	db.documents.query(
+			  qb.where(qb.and(qb.notIn(qb.collection('treatment'), qb.value(queryKey, queryValue)), qb.collection('latest'))).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999)
+			).result( 
+				function(documents) {
+		    		console.log("Found " + documents.length + " documents : \n" + JSON.stringify(documents, null, 3));
+					response.status(200).send(JSON.stringify(documents, null, 3));
+				}, 
+				function(error) {
+				    console.log(JSON.stringify(error, null, 2));
+				}
+			);
+	  	} else {
+	    	response.status(200).send("Error! Unknown query parameter");
+	    }
+    }
+});
+
+app.get("/treatment/union", function(request, response) {
+	db.documents.query(
+      	qb.where(qb.and(qb.or(qb.collection('treatment'), qb.collection('treatment_union')), qb.collection('latest'))).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999)
+    ).result(
 	  	function(documents) {
-	  		console.log("Difference results : \n" + JSON.stringify(documents, null, 3));
-			response.status(200).send(JSON.stringify(documents, null, 3));
+	  		console.log("Unions results length : \n" + documents.length);
+	  		console.log("\nUnion results : \n" + JSON.stringify(documents, null, 3));
+			response.status(200).send(JSON.stringify(documents, null, 10));
 	  	}
+	);
+});
+
+app.get("/treatment/timeslice", function(request, response) {
+	var time = request.param('time');
+	db.documents.query(
+		qb.where(
+	    	qb.periodRange('valid', 'aln_contains', qb.period(time)),
+	      	qb.and(qb.collection('treatment'),qb.collection('latest'))
+	    ).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999)
+    ).result( 
+		function(documents) {
+    		console.log("Found documents : \n" + JSON.stringify(documents, null, 3));
+			response.status(200).send(JSON.stringify(documents, null, 3));
+		}, 
+		function(error) {
+		    console.log(JSON.stringify(error, null, 2));
+		}
 	);
 });
 
