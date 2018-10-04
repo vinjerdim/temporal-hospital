@@ -154,6 +154,17 @@ app.get('/test7', function(request, response) {
 
 app.get("/treatment/all", function(request, response) {
 	db.documents.query(
+      	qb.where(qb.collection('treatment')).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
+    ).result(
+	  	function(documents) {
+	  		console.log("All  " + documents.length + " documents : \n" + JSON.stringify(documents, null, 3));
+			response.status(200).send(JSON.stringify(documents, null, 3));
+	  	}
+	);
+});
+
+app.get("/treatment/latest", function(request, response) {
+	db.documents.query(
       	qb.where(qb.and(qb.collection('treatment'), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
     ).result(
 	  	function(documents) {
@@ -268,6 +279,24 @@ app.post("/treatment/update", function(request, response) {
     )
 });
 
+app.post("/treatment/delete", function(request, response) {
+	console.log('Get new POST request from ' + request.originalUrl);
+    console.log('\t' + JSON.stringify(request.body));
+
+    var uri =  request.body.uri;
+
+    db.documents.patch(uri,'delete','treatment', uri).result(
+    	function(result) {
+    		console.log("Delete result : " + JSON.stringify(result, null, 3));
+    		console.log("\nSuccessfully deleted document with uri : " + uri);
+			response.status(200).send("OK");
+    	},
+    	function(error) {
+	    	console.log(JSON.stringify(error, null, 2));
+	  	}
+	);
+});
+
 
 app.get("/treatment/select", function(request, response) {
 	console.log('Get new GET request from ' + request.originalUrl);
@@ -284,7 +313,7 @@ app.get("/treatment/select", function(request, response) {
 
 	    if (queryKey === "patient_id" || queryKey === "doctor_id" || queryKey === "disease" || queryKey === "room") {
 	    	db.documents.query(
-				qb.where(qb.and(qb.value(queryKey, queryValue), qb.collection('latest'))).withOptions({categories: ['content', 'metadata-values']})
+				qb.where(qb.and(qb.collection('treatment'), qb.value(queryKey, queryValue)/*, qb.collection('latest')*/)).withOptions({categories: ['content', 'collections', 'metadata-values']})
 			).result( 
 				function(documents) {
 		    		console.log("Found " + documents.length + " documents : \n" + JSON.stringify(documents, null, 3));
@@ -309,7 +338,7 @@ app.get("/treatment/project", function(request, response) {
 		});
 		console.log("Projected attribute paths : " + JSON.stringify(projectionKeys, null, 1));
 		db.documents.query(
-	      	qb.where(qb.collection('treatment')).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999, qb.extract({
+	      	qb.where(qb.and(qb.collection('treatment'), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999, qb.extract({
 		        paths: projectionKeys,
 		        selected: 'include-with-ancestors'
 		    }))
@@ -363,7 +392,7 @@ app.get("/treatment/diff", function(request, response) {
 
     	if (queryKey === "patient_id" || queryKey === "doctor_id" || queryKey === "disease" || queryKey === "room") {
 	    	db.documents.query(
-			  qb.where(qb.and(qb.notIn(qb.collection('treatment'), qb.value(queryKey, queryValue)), qb.collection('latest'))).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999)
+			  qb.where(qb.and(qb.notIn(qb.collection('treatment'), qb.value(queryKey, queryValue)), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
 			).result( 
 				function(documents) {
 		    		console.log("Found " + documents.length + " documents : \n" + JSON.stringify(documents, null, 3));
@@ -381,7 +410,7 @@ app.get("/treatment/diff", function(request, response) {
 
 app.get("/treatment/union", function(request, response) {
 	db.documents.query(
-      	qb.where(qb.and(qb.or(qb.collection('treatment'), qb.collection('treatment_union')), qb.collection('latest'))).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999)
+      	qb.where(qb.and(qb.or(qb.collection('treatment'), qb.collection('treatment_union')), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
     ).result(
 	  	function(documents) {
 	  		console.log("Unions results length : \n" + documents.length);
@@ -397,7 +426,7 @@ app.get("/treatment/timeslice", function(request, response) {
 		qb.where(
 	    	qb.periodRange('valid', 'aln_contains', qb.period(time)),
 	      	qb.and(qb.collection('treatment'),qb.collection('latest'))
-	    ).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999)
+	    ).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
     ).result( 
 		function(documents) {
     		console.log("Found documents : \n" + JSON.stringify(documents, null, 3));
