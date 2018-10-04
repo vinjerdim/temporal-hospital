@@ -26,134 +26,6 @@ app.get('/', function(request, response) {
     response.send('Temporal Hospital REST API');
 });
 
-app.get('/test1', function(request, response) {
-	const documents = [
-	  { uri: '/gs/aardvark.json',
-	    content: {
-	      name: 'aardvark',
-	      kind: 'mammal',
-	      desc: 'The aardvark is a medium-sized burrowing, nocturnal mammal.'
-	    }
-	  },
-	  { uri: '/gs/bluebird.json',
-	    content: {
-	      name: 'bluebird',
-	      kind: 'bird',
-	      desc: 'The bluebird is a medium-sized, mostly insectivorous bird.'
-	    }
-	  },
-	  { uri: '/gs/cobra.json',
-	    content: {
-	      name: 'cobra',
-	      kind: 'mammal',
-	      desc: 'The cobra is a venomous, hooded snake of the family Elapidae.'
-	    }
-	  },
-	];
-	db.documents.write(documents).result( 
-	  function(response) {
-	    console.log('Loaded the following documents:');
-	    response.documents.forEach( function(document) {
-	      console.log('  ' + document.uri);
-	    });
-	  }, 
-	  function(error) {
-	    console.log(JSON.stringify(error, null, 2));
-	  }
-	);
-});
-
-app.get('/test2', function(request, response) {
-	db.documents.query(
-	  qb.where(qb.byExample({kind: 'mammal'}))
-	).result( 
-		function(documents) {
-		    console.log('Matches for kind=mammal:')
-		    documents.forEach( function(document) {
-		      console.log('\nURI: ' + document.uri);
-		      console.log('Name: ' + document.content.name);
-		    });
-		}, 
-		function(error) {
-		    console.log(JSON.stringify(error, null, 2));
-		}
-	);
-});
-
-app.get('/test3', function(request, response) {
-	db.documents.patch(
-	  '/gs/cobra.json',
-	  pb.replace('/kind', 'reptile')
-	).result( function(response) {
-	    console.log('Patched ' + response.uri);
-	}, function(error) {
-	    console.log(JSON.stringify(error, null, 2));
-	});
-});
-
-app.get('/test4', function(request, response) {
-	db.documents.read(
-	  '/gs/cobra.json'
-	).result( function(documents) {
-	  documents.forEach( function(document) {
-	    console.log(JSON.stringify(document, null, 2) + '\n');
-	  });
-	}, function(error) {
-	    console.log(JSON.stringify(error, null, 2));
-	});
-});
-
-app.get('/test5', function(request, response) {
-	db.documents.removeAll(
-	  {directory: '/gs/'}
-	).result( function(response) {
-	  console.log(response);
-	});
-});
-
-app.get('/test6', function(request, response) {
-	db.documents.read(
-	  '/animals.json'
-	).result( function(documents) {
-	  documents.forEach( function(document) {
-	    console.log(JSON.stringify(document, null, 2) + '\n');
-	  });
-	}, function(error) {
-	    console.log(JSON.stringify(error, null, 2));
-	});
-});
-
-app.get('/test7', function(request, response) {
-	var trade = { 
-		uri: '/trading_1.json',
-		temporalCollection: 'trading',
-		content: {
-      		"trade": {
-      			"trader": "John",
-    			"price": 12
-    		}
-		},
-		metadataValues: {
-			validStart: "2018-10-03T11:00:00",
-	        validEnd: "2018-10-07T11:00:00"
-	    }
-      	// validStart: "2018-10-03T11:00:00",
-      	// validEnd: "2018-10-07T11:00:00"
-    };
-	//db.documents.write(trade, null, null, null, null, "trading").result(
-	var dt = dateTime.create();
-	//db.documents.write(trade, [], "", "", "", "trading", dt._now).result(
-	db.documents.write(trade).result(  
-	  function(writeResp) {
-		console.log(writeResp);
-		response.status(200).send("OK");
-	  }, 
-	  function(error) {
-	    console.log(JSON.stringify(error, null, 2));
-	  }
-	);
-});
-
 app.get("/treatment/all", function(request, response) {
 	db.documents.query(
       	qb.where(qb.collection('treatment')).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
@@ -212,7 +84,7 @@ app.post('/treatment/insert', function(request, response) {
     var valid_start = new Date(dateTime.create(validStart).getTime()).toISOString();
     var valid_end = new Date(dateTime.create(validEnd).getTime()).toISOString();
 
-    var uri = "/" + patientID + "_" + doctorID + "_" + valid_start + "-" + valid_end;
+    var uri = "/" + patientID + "_" + doctorID + "_" + room + "-" + disease;
     var treatment = { 
 		uri: uri,
 		temporalCollection: 'treatment',
@@ -361,29 +233,6 @@ app.get("/treatment/project", function(request, response) {
 });
 
 app.get("/treatment/diff", function(request, response) {
-	//var comparator = request.param('comparator');
-	//console.log("Difference comparator : " + comparator);
-	//db.documents.query(
-		// qb.where(qb.and(qb.notIn(qb.collection('treatment'),
-	 //        	qb.value('treatment', comparator)
-	 //    	)
-	 //  	).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999)
-		// qb.where(qb.not(qb.collection('treatment'),
-	 //        	qb.value('content', comparator)
-	 //    	)
-	 //  	).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999))
-		//qb.where(qb.collection('treatment'), qb.not(qb.collection('treatment_diff'))).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999)
-		// qb.where(qb.notIn(qb.collection('treatment'), qb.collection('treatment_diff'))).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999 , qb.extract({
-		//         paths: ['/uri'],
-		//         selected: 'exclude'
-		//     }))
-	// ).result(
-	//   	function(documents) {
-	//   		console.log("Difference results count: " + documents.length);
-	//   		//console.log("\nDifference results : \n" + JSON.stringify(documents, null, 3));
-	// 		response.status(200).send(JSON.stringify(documents, null, 3));
-	//   	}
-	// );
 	console.log('Get new GET request from ' + request.originalUrl);
     console.log('\t' + JSON.stringify(request.body));
 
