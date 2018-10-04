@@ -152,6 +152,17 @@ app.get('/test7', function(request, response) {
 	);
 });
 
+app.get("/all", function(request, response) {
+	db.documents.query(
+      	qb.where(qb.collection('treatment')).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999)
+    ).result(
+	  	function(documents) {
+	  		console.log("All documents : \n" + JSON.stringify(documents, null, 3));
+			response.status(200).send(JSON.stringify(documents, null, 3));
+	  	}
+	);
+});
+
 app.post('/insert', function(request, response) {
 	console.log('Get new POST request from ' + request.originalUrl);
     console.log('\t' + JSON.stringify(request.body));
@@ -166,7 +177,7 @@ app.post('/insert', function(request, response) {
     var valid_start = new Date(dateTime.create(validStart).getTime()).toISOString();
     var valid_end = new Date(dateTime.create(validEnd).getTime()).toISOString();
 
-    var uri = "/" + patientID + "_" + doctorID + "_" + valid_start + "-" + valid_end + ".json";
+    var uri = "/" + patientID + "_" + doctorID + "_" + valid_start + "-" + valid_end;
     var treatment = { 
 		uri: uri,
 		temporalCollection: 'treatment',
@@ -198,9 +209,9 @@ app.post('/insert', function(request, response) {
 	 //    }
   //   };
     db.documents.write(treatment).result(  
-	  function(writeResp) {
-		console.log(writeResp);
-    	console.log("Saved object : \n" + JSON.stringify(treatment, null, 3));
+	  function(result) {
+		console.log(result);
+    	console.log("Inserted object : \n" + JSON.stringify(treatment, null, 3));
 		response.status(200).send("OK");
 	  }, 
 	  function(error) {
@@ -210,16 +221,46 @@ app.post('/insert', function(request, response) {
     //response.status(200).send(JSON.stringify(treatment));
 });
 
-app.get("/all", function(request, response) {
-	db.documents.query(
-      	qb.where(qb.collection('treatment')).withOptions({categories: ['content', 'metadata-values']})
-    ).result(
-	  	function(documents) {
-	  		console.log("All documents : \n" + JSON.stringify(documents, null, 3));
-			response.status(200).send(JSON.stringify(documents, null, 3));
-	  	}
-	);
+app.post("/update", function(request, response) {
+	console.log('Get new POST request from ' + request.originalUrl);
+    console.log('\t' + JSON.stringify(request.body));
+
+	var uri =  request.body.uri;
+	var patientID = request.body.patient_id;
+    var doctorID = request.body.doctor_id;
+    var disease = request.body.disease;
+    var room = request.body.room;
+    var validStart = request.body.valid_start;
+    var validEnd = request.body.valid_end;
+
+    db.documents.read({uris: uri, categories:['content', 'metadata-values']}).result(
+    	function(documents) {
+    		var treatmentRecord = documents[0];
+    		console.log("\nTreatment to update : " + JSON.stringify(treatmentRecord, null, 3));
+    		treatmentRecord.temporalCollection = "treatment";
+    		treatmentRecord.content.treatment.patient_id = patientID;
+    		treatmentRecord.content.treatment.doctor_id = doctorID;
+    		treatmentRecord.content.treatment.disease = disease;
+    		treatmentRecord.content.treatment.room = room;
+    		treatmentRecord.metadataValues.validStart = validStart;
+    		treatmentRecord.metadataValues.validEnd = validEnd;
+    		db.documents.write(treatmentRecord).result(
+				function(result) {
+					console.log("Update result : " + JSON.stringify(result, null, 3));
+		    		console.log("\nSuccessfully updated document with uri : " + uri);
+					response.status(200).send("OK");
+			  	}, 
+			  	function(error) {
+			    	console.log(JSON.stringify(error, null, 2));
+			  	}
+			);
+    	}, 
+		function(error) {
+			console.log(JSON.stringify(error, null, 2));
+		}
+    )
 });
+
 
 app.get("/select", function(request, response) {
 	console.log('Get new GET request from ' + request.originalUrl);
@@ -265,11 +306,6 @@ app.get("/select", function(request, response) {
 			  qb.where(qb.byExample({room: roomName})).withOptions({categories: ['content', 'metadata-values']})
 			).result( 
 				function(documents) {
-				    // console.log('Matches for kind=mammal:')
-				    // documents.forEach( function(document) {
-				    //   console.log('\nURI: ' + document.uri);
-				    //   console.log('Name: ' + document.content.name);
-				    // });
 		    		console.log("Found documents : \n" + JSON.stringify(documents, null, 3));
 					response.status(200).send(JSON.stringify(documents, null, 3));
 				}, 
@@ -300,13 +336,39 @@ app.get("/project", function(request, response) {
 	    ).result(
 		  	function(documents) {
 		  		console.log("Projection results : \n" + JSON.stringify(documents, null, 3));
-				response.status(200).send(JSON.stringify(documents, null, 3));
+				response.status(200).send(JSON.stringify(documents, null, 10));
 		  	}
 		);
 	} else {
 		console.log("No Given Attribute to Project");
 		response.status(200).send("Please specify attribute to project");
 	}
+});
+
+app.get("/diff", function(request, response) {
+	var comparator = request.param('comparator');
+	console.log("Difference comparator : " + comparator);
+	db.documents.query(
+		// qb.where(qb.and(qb.notIn(qb.collection('treatment'),
+	 //        	qb.value('treatment', comparator)
+	 //    	)
+	 //  	).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999)
+		// qb.where(qb.not(qb.collection('treatment'),
+	 //        	qb.value('content', comparator)
+	 //    	)
+	 //  	).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999))
+		qb.where(
+		    qb.collection('treatment'),
+		    qb.or(
+		        qb.value('treatment', JSON.parse(comparator))
+		    )
+		).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999)
+	).result(
+	  	function(documents) {
+	  		console.log("Difference results : \n" + JSON.stringify(documents, null, 3));
+			response.status(200).send(JSON.stringify(documents, null, 3));
+	  	}
+	);
 });
 
 app.listen(port, () => {

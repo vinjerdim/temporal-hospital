@@ -41,12 +41,11 @@ function load_doctors() {
         insertRecord(record);
     });
 }
-
 function load_treatment() {
     const treatments = require("./treatment.json");
     treatments.forEach(treatment => {
         var record = {
-            'uri' : `/treatment/${treatment.patient_id}_${treatment.doctor_id}`,
+            'uri' : `/treatment/${treatment.patient_id}_${treatment.doctor_id}_${treatment.valid_start}_${treatment.valid_end}`,
             'temporalCollection': 'treatment',
             'content' : {
                 'treatment': {
