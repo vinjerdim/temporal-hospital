@@ -283,12 +283,15 @@ app.post("/treatment/delete", function(request, response) {
 	console.log('Get new POST request from ' + request.originalUrl);
     console.log('\t' + JSON.stringify(request.body));
 
-    var uri =  request.body.uri;
-
-    db.documents.patch(uri,'delete','treatment', uri).result(
+    var docuri =  request.body.uri;
+    console.log("Document uri to delete : " + docuri);
+	db.documents.remove({
+    	uris: [docuri],
+      	temporalCollection: 'treatment'
+    }).result(
     	function(result) {
     		console.log("Delete result : " + JSON.stringify(result, null, 3));
-    		console.log("\nSuccessfully deleted document with uri : " + uri);
+    		console.log("\nSuccessfully deleted document with uri : " + docuri);
 			response.status(200).send("OK");
     	},
     	function(error) {
