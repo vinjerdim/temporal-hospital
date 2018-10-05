@@ -7,4 +7,16 @@ $('select').change(function(){
      $('.relation-2').fadeIn('slow');
 });
 
+$( "input.submit-allen" ).click(function( event ) {
+    event.preventDefault();
+	var query =  $('select.selectpicker').val();
+	var start = $('input[name="start"]').val();
+	var end = $('input[name="end"]').val();
+
+	$('form.allen').attr('action', '/allen/' + query + '/' + start + '/' + end);
+
+	$('form.allen').submit();
+    
+});
+
 });
