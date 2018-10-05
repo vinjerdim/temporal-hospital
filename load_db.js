@@ -44,8 +44,9 @@ function load_doctors() {
 function load_treatment() {
     const treatments = require("./treatment.json");
     treatments.forEach(treatment => {
+        var disease = treatment.disease.split(' ').join('_');
         var record = {
-            'uri' : `/treatment/${treatment.patient_id}_${treatment.doctor_id}_${treatment.valid_start}_${treatment.valid_end}`,
+            'uri' : `/treatment/${treatment.patient_id}_${treatment.doctor_id}_${treatment.room}_${disease}`,
             'temporalCollection': 'treatment',
             'content' : {
                 'treatment': {
@@ -59,7 +60,6 @@ function load_treatment() {
                 'validStart': treatment.valid_start,
                 'validEnd': treatment.valid_end
             }
-            //'collections' : ['treatment']
         };
         insertRecord(record);
     });
@@ -68,8 +68,9 @@ function load_treatment() {
 function load_treatment_union() {
     const treatments = require("./treatment_union.json");
     treatments.forEach(treatment => {
+        var disease = treatment.disease.split(' ').join('_');
         var record = {
-            'uri' : `/treatment_union/${treatment.patient_id}_${treatment.doctor_id}_${treatment.room}_${treatment.disease}`,
+            'uri' : `/treatment_union/${treatment.patient_id}_${treatment.doctor_id}_${treatment.room}_${disease}`,
             'temporalCollection': 'treatment_union',
             'content' : {
                 'treatment': {

@@ -6,6 +6,7 @@ const port           = 8123;
 const app            = express();
 const dateTime = require('node-datetime');
 const marklogic = require('marklogic');
+var async = require("async");
 var connInfo = require('./db_config.js');
 var db = marklogic.createDatabaseClient(connInfo);
 const qb = marklogic.queryBuilder;
@@ -13,6 +14,74 @@ const pb = marklogic.patchBuilder;
 
 var dbInit = require('./load_db.js');
 var allen = require('./allen.js');
+
+function isTreatmentEqual(treatmentA, treatmentB) {
+	return ((treatmentA.patient_id === treatmentB.patient_id) && 
+		(treatmentA.doctor_id === treatmentB.doctor_id) &&
+		(treatmentA.room === treatmentB.room) && 
+		(treatmentA.disease === treatmentB.disease));
+}
+
+function isBefore(t1, t2) {
+	return (dateTime.create(t1).getTime() < dateTime.create(t2).getTime());
+}
+
+function isAfter(t1, t2) {
+	return (dateTime.create(t1).getTime() > dateTime.create(t2).getTime());
+}
+
+function isEqual(t1, t2) {
+	return (dateTime.create(t1).getTime() == dateTime.create(t2).getTime());
+}
+
+function fetchResult() {
+	return new Promise(function (resolve, reject) {
+	    resolve();
+	});
+}
+
+function buildUnionDocs(callback) {
+	db.documents.query(qb.where(qb.and(qb.collection('treatment_union'), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 999)
+	).result(
+		function(dummyDocs) {
+			console.log("Found " + dummyDocs.length + " dummyDocs : \n" + JSON.stringify(dummyDocs, null, 3));
+			var unionDocs = new Array();
+			dummyDocs.forEach(function(dummyDoc) {
+				db.documents.query(
+			      	qb.where(qb.and(qb.collection('treatment'), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
+			    ).result(
+				  	function(documents) {
+				  		documents.forEach(function(document) {
+			  				var resultDoc = dummyDoc;
+				  			var treatmentA = dummyDoc.content.treatment;
+				  			var treatmentB = document.content.treatment;
+				  			if (isTreatmentEqual(treatmentA, treatmentB)) {
+				  				var validS1 = dummyDoc.metadataValues.validStart;
+				  				var validS2 = document.metadataValues.validStart;
+				  				var validE1 = dummyDoc.metadataValues.validEnd;
+				  				var validE2 = document.metadataValues.validEnd;
+
+				  				if (isBefore(validS2, validS1)) {
+				  					resultDoc.metadataValues.validStart = validS2;
+				  				}
+				  				if (isAfter(validE2, validE1)) {
+				  					resultDoc.metadataValues.validEnd = validE2;
+				  				}
+				  				unionDocs.push(resultDoc);
+				  			} else {
+				  				return;
+				  			}
+				  		})
+				  		var i = dummyDocs.indexOf(dummyDoc);
+				  		if (i === (dummyDocs.length-1)) {
+		  					callback(unionDocs);
+				  		}
+				  	}
+				);
+			})
+		}
+	)
+}
 
 app.use(bodyParser.json());         // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
@@ -43,17 +112,6 @@ app.get("/treatment/latest", function(request, response) {
     ).result(
 	  	function(documents) {
 	  		console.log("All  " + documents.length + " documents : \n" + JSON.stringify(documents, null, 3));
-			response.status(200).send(JSON.stringify(documents, null, 3));
-	  	}
-	);
-});
-
-app.get("/treatment_diff/all", function(request, response) {
-	db.documents.query(
-      	qb.where(qb.and(qb.collection('treatment_diff'), qb.collection('latest'))).withOptions({categories: ['content', 'metadata-values']}).slice(1, 99999999)
-    ).result(
-	  	function(documents) {
-	  		console.log("All  " + documents.length + " diff documents : \n" + JSON.stringify(documents, null, 3));
 			response.status(200).send(JSON.stringify(documents, null, 3));
 	  	}
 	);
@@ -263,15 +321,29 @@ app.get("/treatment/diff", function(request, response) {
 });
 
 app.get("/treatment/union", function(request, response) {
-	db.documents.query(
-      	qb.where(qb.and(qb.or(qb.collection('treatment'), qb.collection('treatment_union')), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
-    ).result(
-	  	function(documents) {
-	  		console.log("Unions results length : \n" + documents.length);
-	  		console.log("\nUnion results : \n" + JSON.stringify(documents, null, 3));
-			response.status(200).send(JSON.stringify(documents, null, 10));
-	  	}
-	);
+	buildUnionDocs(function(unionDocs) {
+		console.log("Union Docs content : \n" + JSON.stringify(unionDocs, null, 2));
+		db.documents.query(
+			      	qb.where(qb.and(qb.collection('treatment'), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
+			    ).result(
+				  	function(documents) {
+				  		var results = documents;
+				  		documents.forEach(function(document) {
+				  			for (var i=0; i<unionDocs.length; i++) {
+				  				var treatmentA = unionDocs[i].content.treatment;
+				  				var treatmentB = document.content.treatment;
+					  			if (isTreatmentEqual(treatmentA, treatmentB)) {
+					  				var j = documents.indexOf(document);
+					  				results[j].metadataValues = unionDocs[i].metadataValues;
+					  			} else {
+					  				continue;
+					  			}
+				  			}
+				  		})
+						response.status(200).send(JSON.stringify(results,null,3));
+				  	}
+				);
+	});
 });
 
 app.get("/treatment/timeslice", function(request, response) {

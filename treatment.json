@@ -78,7 +78,7 @@
 {"patient_id":11,"doctor_id":14,"room":"cempaka","disease":"primary tumor","valid_start":"2017-09-01T17:23:00Z","valid_end":"2017-09-06T22:34:26Z"},
 {"patient_id":5,"doctor_id":26,"room":"tulip","disease":"histiocytic lymphoma","valid_start":"2017-09-02T09:51:41Z","valid_end":"2017-09-06T10:57:31Z"},
 {"patient_id":13,"doctor_id":22,"room":"aster","disease":"Lymphoma Malignant","valid_start":"2017-09-02T12:38:21Z","valid_end":"2017-09-06T02:53:37Z"},
-{"patient_id":8,"doctor_id":18,"room":"kenanga","disease":"scars","valid_start":"2017-09-01T05:18:51Z","valid_end":"2017-09-04T04:47:43Z"},
+{"patient_id":8,"doctor_id":18,"room":"kenanga","disease":"scars","valid_start":"2017-09-03T05:18:51Z","valid_end":"2017-09-08T04:47:43Z"},
 {"patient_id":4,"doctor_id":9,"room":"cempaka","disease":"bronchitis","valid_start":"2017-09-02T12:54:08Z","valid_end":"2017-09-06T18:59:38Z"},
 {"patient_id":12,"doctor_id":14,"room":"krisan","disease":"tumor","valid_start":"2017-09-01T16:17:02Z","valid_end":"2017-09-05T04:20:13Z"},
 {"patient_id":2,"doctor_id":28,"room":"anggrek","disease":"depression","valid_start":"2017-09-01T17:56:58Z","valid_end":"2017-09-06T15:35:31Z"},
