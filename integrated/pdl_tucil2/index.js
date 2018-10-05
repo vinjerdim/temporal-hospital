@@ -23,6 +23,103 @@ app.use('/allen', allen);
 var routes = require('./routes/dummyRoutes');
 routes(app);
 
+function isTreatmentEqual(treatmentA, treatmentB) {
+    return ((treatmentA.patient_id === treatmentB.patient_id) && 
+        (treatmentA.doctor_id === treatmentB.doctor_id) &&
+        (treatmentA.room === treatmentB.room) && 
+        (treatmentA.disease === treatmentB.disease));
+}
+
+function isBefore(t1, t2) {
+    return (dateTime.create(t1).getTime() < dateTime.create(t2).getTime());
+}
+
+function isAfter(t1, t2) {
+    return (dateTime.create(t1).getTime() > dateTime.create(t2).getTime());
+}
+
+function isEqual(t1, t2) {
+    return (dateTime.create(t1).getTime() == dateTime.create(t2).getTime());
+}
+
+function buildUnionDocs(callback) {
+    db.documents.query(qb.where(qb.and(qb.collection('treatment_union'), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 999)
+    ).result(
+        function(dummyDocs) {
+            console.log("Found " + dummyDocs.length + " dummyDocs : \n" + JSON.stringify(dummyDocs, null, 3));
+            var unionDocs = new Array();
+            dummyDocs.forEach(function(dummyDoc) {
+                db.documents.query(
+                    qb.where(qb.and(qb.collection('treatment'), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
+                ).result(
+                    function(documents) {
+                        documents.forEach(function(document) {
+                            var resultDoc = dummyDoc;
+                            var treatmentA = dummyDoc.content.treatment;
+                            var treatmentB = document.content.treatment;
+                            if (isTreatmentEqual(treatmentA, treatmentB)) {
+                                var validS1 = dummyDoc.metadataValues.validStart;
+                                var validS2 = document.metadataValues.validStart;
+                                var validE1 = dummyDoc.metadataValues.validEnd;
+                                var validE2 = document.metadataValues.validEnd;
+
+                                if (isBefore(validS2, validS1)) {
+                                    resultDoc.metadataValues.validStart = validS2;
+                                }
+                                if (isAfter(validE2, validE1)) {
+                                    resultDoc.metadataValues.validEnd = validE2;
+                                }
+                                unionDocs.push(resultDoc);
+                            } else {
+                                return;
+                            }
+                        })
+                        var i = dummyDocs.indexOf(dummyDoc);
+                        if (i === (dummyDocs.length-1)) {
+                            callback(unionDocs);
+                        }
+                    }
+                );
+            })
+        }
+    )
+}
+function findPatient(patientID, callback) {
+    var uri = "/patient/" + patientID;
+    db.documents.read(uri)/*.withOptions({categories: ['content', 'collections', 'metadata-values']})*/
+    .result(
+        function(documents) {
+            callback(documents);
+        }, 
+        function(error) {
+            console.log(JSON.stringify(error, null, 2));
+        }
+    );
+}
+function patientJoin(callback) {
+    db.documents.query(
+        qb.where(qb.collection('treatment')).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
+    ).result(
+        function(treatmentDocs) {
+            var joinResults = new Array();
+            treatmentDocs.forEach(function(treatmentDoc) {
+                var patientID = treatmentDoc.content.treatment.patient_id;
+                findPatient(patientID, function(documents) {
+                    var patient = documents[0].content;
+                    treatmentDoc.content.treatment.patient_name = patient.name;
+                    treatmentDoc.content.treatment.patient_dob = patient.date_birth;
+                    treatmentDoc.content.treatment.gender = patient.gender;
+                    joinResults.push(treatmentDoc);
+                    var i = treatmentDocs.indexOf(treatmentDoc);
+                    if (i === (treatmentDocs.length-1)) {
+                        callback(joinResults);
+                    }
+                });
+            })
+        }
+    );
+}
+
 //=============================== INLINE API ================================
 
 app.get("/treatment/latest", function(request, response) {
@@ -301,6 +398,58 @@ app.get("/treatment/diff/result", function(request, response) {
             );
         }
     }
+});
+
+app.get("/treatment/union/input", function(request, response) {
+    db.documents.query(qb.where(qb.and(qb.collection('treatment_union'), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 999)
+    ).result(
+        function(dummyDocs) {
+            db.documents.query(
+                qb.where(qb.and(qb.collection('treatment'), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
+            ).result(
+                function(documents) {
+                    var obj = new Object();
+                    obj.documents = documents;
+                    obj.dummy_docs = dummyDocs;
+                    var data = JSON.stringify(obj, null, 2);
+                    response.status(200).render(
+                       'union_input',
+                       { title: "Union Operation", data: data}
+                    );
+                }
+            );
+        }
+    )
+});
+
+app.get("/treatment/union/result", function(request, response) {
+    buildUnionDocs(function(unionDocs) {
+        console.log("Union Docs content : \n" + JSON.stringify(unionDocs, null, 2));
+        db.documents.query(
+            qb.where(qb.and(qb.collection('treatment'), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
+                ).result(
+                    function(documents) {
+                        var results = documents;
+                        documents.forEach(function(document) {
+                            for (var i=0; i<unionDocs.length; i++) {
+                                var treatmentA = unionDocs[i].content.treatment;
+                                var treatmentB = document.content.treatment;
+                                if (isTreatmentEqual(treatmentA, treatmentB)) {
+                                    var j = documents.indexOf(document);
+                                    results[j].metadataValues = unionDocs[i].metadataValues;
+                                } else {
+                                    continue;
+                                }
+                            }
+                        })
+                        var data = JSON.stringify(documents, null, 3);
+                        response.status(200).render(
+                           'union_result',
+                           { title: 'Union Result', data: data}
+                        );
+                    }
+                );
+    });
 });
 
 
