@@ -1,0 +1,83 @@
+extends layout
+
+block content
+
+  br
+  form(action="." method="POST" class="form-registration").main-section
+    .row
+     .col-sm-2
+      select.selectpicker
+        option.selection Selection 
+        option.projection Projection 
+        option.union Union 
+        option.join Natural Join 
+        option.difference Difference 
+     .col-sm-2
+      input(
+        type="submit"
+        value='Go!'
+        class="btn btn-lg btn-primary btn-block"
+      )
+    br
+    br
+
+    .relation-1
+     .row
+      h3 Relation 1
+     .row
+      .col-sm-4
+        label(for="doctor-1") Doctor 
+        input(
+          type="text"
+          id="doctor-1"
+          name="doctor-1"
+          class="form-control"
+        )
+      .col-sm-4
+        label(for="patient-1") Patient 
+        input(
+          type="text"
+          id="patient-1"
+          name="patient-1"
+          class="form-control"
+        )
+      .col-sm-4
+        label(for="specialization-1") Specialization 
+        input(
+          type="text"
+          id="specialization-1"
+          name="specialization-1"
+          class="form-control"
+        )
+    br 
+
+    .relation-2(style="display: none;")
+     .row
+      h3 Relation 2
+     .row
+      .col-sm-4
+        label(for="doctor-2") Doctor 
+        input(
+          type="text"
+          id="doctor-2"
+          name="doctor-2"
+          class="form-control"
+        )
+      .col-sm-4
+        label(for="patient-2") Patient 
+        input(
+          type="text"
+          id="patient-2"
+          name="patient-2"
+          class="form-control"
+        )
+      .col-sm-4
+        label(for="specialization-2") Specialization 
+        input(
+          type="text"
+          id="specialization-2"
+          name="specialization-2"
+          class="form-control"
+        )
+    br 
+

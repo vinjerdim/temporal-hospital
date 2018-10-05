@@ -1,0 +1,83 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto:400,500,700,300,100);
+
+body {
+ font-family: "Roboto", helvetica, arial, sans-serif;
+ font-weight: 300; 
+}
+
+.navbar-fixed-left{
+  background-color: #1E88E5;
+  color: white;
+}
+
+.nav-title {
+  padding: 20px 20px 0px;
+}
+
+.nav-section {
+  padding-left: 20px;
+  font-size: 13px;
+  color: #BBDEFB;
+}
+
+.nav-section-2 {
+  margin-top: 20px;
+}
+
+a.nostyle:link {
+    text-decoration: inherit;
+    color: inherit;
+}
+
+a.nostyle:visited {
+    text-decoration: inherit;
+    color: inherit;
+}
+
+.title {
+  padding: 20px 20px 0px;
+  text-align: right;
+}
+
+.main-section {
+  padding: 0px 20px 20px; 
+}
+
+.list-group-item,
+.list-group-item:first-child,
+.list-group-item:last-child {
+  border: 0px;
+  border-radius: 0px;
+  background-color: inherit;
+  cursor: pointer;
+} 
+
+.list-group-item:hover {
+  background-color: #1976D2;
+}
+
+input[type="submit"] {
+  border-radius: 0px;
+  background-color: white;
+  color: rgb(0, 123, 255);
+}
+
+select {
+  font-family: "Roboto", helvetica, arial, sans-serif;
+  font-weight: 300;
+  width: 120px;
+  padding: 5px 25px 5px 15px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  height: 48px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: url(/img/dropdown.png) 90% / 20% no-repeat #eee;
+}
+
+option {
+  font-family: "Roboto", helvetica, arial, sans-serif;
+  font-weight: 300;
+}
+

@@ -1,0 +1,57 @@
+extends layout
+
+block content
+
+  br
+  form(action="." method="POST" class="form-registration").main-section
+    .row
+      .col-sm-6
+        label(for="start") Start Time
+      .col-sm-6
+        label(for="end-time") End Time
+    .row
+      .col-sm-2
+        input(
+          type="text"
+          id="start-time"
+          name="start-time"
+          class="form-control"
+        )
+      .col-sm-4.date-picker
+        .input-group.date(data-provide="datepicker" data-date-container=".date-picker")
+          input(type="text").form-control
+          .input-group-addon
+            span.glyphicon.glyphicon-calendar
+      .col-sm-2
+        input(
+          type="text"
+          id="end-time"
+          name="end-time"
+          class="form-control"
+        )
+      .col-sm-4
+        input(
+          type="text"
+          id="end-time"
+          name="end-time"
+          class="form-control"
+        )
+    br
+
+    .row
+     .col-sm-2.offset-sm-4
+      select.selectpicker
+        option Before Y 
+        option Meets Y
+        option Overlaps Y 
+        option During Y 
+        option Starts Y 
+        option Finishes Y 
+        option Equal Y 
+
+     .col-sm-2
+      input(
+        type="submit"
+        value="Go Allen!"
+        class="btn btn-lg btn-primary btn-block"
+      )

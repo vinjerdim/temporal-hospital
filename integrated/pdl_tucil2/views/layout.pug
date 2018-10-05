@@ -1,0 +1,41 @@
+doctype html
+html
+  head
+    title= "Interface for temporal dbms" 
+    link(rel='stylesheet', href='/css/bootstrap.min.css')
+    link(rel='stylesheet', href='/css/styles.css')
+    link(rel='stylesheet', href='/css/navbar-fixed-left.min.css')
+    script(src='/js/jquery-3.3.1.min.js')
+    link(rel='stylesheet', href='/css/table.css') 
+    link(rel='stylesheet', href='/css/datepicker.css')
+    script(src='/js/bootstrap-datepicker.js')
+    script(src='/js/script.js')
+    
+  body
+    div.container
+      h1.title
+        =title
+
+      .navbar-fixed-left
+          h3.nav-title Query List
+          br
+          ul.list-group.query-list
+            li.nav-section crud 
+            li.list-group-item
+              a(href="/treatment/latest").nostyle Show Latest Treatment 
+            li.list-group-item
+              a(href="/treatment/all").nostyle Show All Treatment 
+            li.list-group-item
+              a(href="/insert").nostyle Insert
+            li.list-group-item
+              a(href="/update").nostyle Update
+            li.list-group-item
+              a(href="/delete").nostyle Delete
+            li.nav-section.nav-section-2 others 
+            li.list-group-item
+              a(href="/allen").nostyle Allen's Intervals
+            li.list-group-item
+              a(href="/algebra").nostyle Temporal Algebra 
+
+
+      block content
