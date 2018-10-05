@@ -10,7 +10,7 @@ var async = require("async");
 var connInfo = require('./db_config.js');
 var db = marklogic.createDatabaseClient(connInfo);
 const qb = marklogic.queryBuilder;
-const pb = marklogic.patchBuilder;
+const pb = marklogic.planBuilder;
 
 var dbInit = require('./load_db.js');
 var allen = require('./allen.js');
@@ -82,6 +82,41 @@ function buildUnionDocs(callback) {
 		}
 	)
 }
+function findPatient(patientID, callback) {
+	var uri = "/patient/" + patientID;
+	db.documents.read(uri)/*.withOptions({categories: ['content', 'collections', 'metadata-values']})*/
+	.result(
+		function(documents) {
+			callback(documents);
+		}, 
+		function(error) {
+		    console.log(JSON.stringify(error, null, 2));
+		}
+	);
+}
+function patientJoin(callback) {
+	db.documents.query(
+      	qb.where(qb.collection('treatment')).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
+    ).result(
+	  	function(treatmentDocs) {
+	  		var joinResults = new Array();
+	  		treatmentDocs.forEach(function(treatmentDoc) {
+	  			var patientID = treatmentDoc.content.treatment.patient_id;
+	  			findPatient(patientID, function(documents) {
+    				var patient = documents[0].content;
+    				treatmentDoc.content.treatment.patient_name = patient.name;
+		    		treatmentDoc.content.treatment.patient_dob = patient.date_birth;
+		    		treatmentDoc.content.treatment.gender = patient.gender;
+		    		joinResults.push(treatmentDoc);
+			  		var i = treatmentDocs.indexOf(treatmentDoc);
+			  		if (i === (treatmentDocs.length-1)) {
+						callback(joinResults);
+			  		}
+	  			});
+	  		})
+	  	}
+	);
+}
 
 app.use(bodyParser.json());         // to support JSON-encoded bodies
 app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
@@ -94,6 +129,17 @@ app.use('/allen', allen);
 app.get('/', function(request, response) {
     response.send('Temporal Hospital REST API');
 });
+
+app.get('/patient/all', function(request, response) {
+	db.documents.query(
+      	qb.where(qb.collection('patient')).slice(1, 99999999)
+    ).result(
+	  	function(documents) {
+	  		console.log("All  " + documents.length + " documents : \n" + JSON.stringify(documents, null, 3));
+			response.status(200).send(JSON.stringify(documents, null, 3));
+	  	}
+	);
+})
 
 app.get("/treatment/all", function(request, response) {
 	db.documents.query(
@@ -343,6 +389,13 @@ app.get("/treatment/union", function(request, response) {
 						response.status(200).send(JSON.stringify(results,null,3));
 				  	}
 				);
+	});
+});
+
+app.get("/treatment/join", function(resuest, response) {
+	patientJoin(function(results) {
+		console.log("Join results : \n" + JSON.stringify(results, null, 3));
+	  	response.status(200).send(JSON.stringify(results, null, 3));
 	});
 });
 
