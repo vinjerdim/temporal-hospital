@@ -84,6 +84,31 @@ function buildUnionDocs(callback) {
         }
     )
 }
+
+function patientJoin(callback) {
+    db.documents.query(
+        qb.where(qb.collection('treatment')).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
+    ).result(
+        function(treatmentDocs) {
+            var joinResults = new Array();
+            treatmentDocs.forEach(function(treatmentDoc) {
+                var patientID = treatmentDoc.content.treatment.patient_id;
+                findPatient(patientID, function(documents) {
+                    var patient = documents[0].content;
+                    treatmentDoc.content.treatment.patient_name = patient.name;
+                    treatmentDoc.content.treatment.patient_dob = patient.date_birth;
+                    treatmentDoc.content.treatment.gender = patient.gender;
+                    joinResults.push(treatmentDoc);
+                    var i = treatmentDocs.indexOf(treatmentDoc);
+                    if (i === (treatmentDocs.length-1)) {
+                        callback(joinResults);
+                    }
+                });
+            })
+        }
+    );
+}
+
 function findPatient(patientID, callback) {
     var uri = "/patient/" + patientID;
     db.documents.read(uri)/*.withOptions({categories: ['content', 'collections', 'metadata-values']})*/
@@ -451,6 +476,58 @@ app.get("/treatment/union/result", function(request, response) {
                 );
     });
 });
+
+app.get("/treatment/join/input", function(resuest, response) {
+    db.documents.query(qb.where(qb.and(qb.collection('treatment_union'), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 999)
+    ).result(
+        function(dummyDocs) {
+            db.documents.query(
+                qb.where(qb.and(qb.collection('treatment'), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
+            ).result(
+                function(documents) {
+                    var obj = new Object();
+                    obj.documents = documents;
+                    obj.dummy_docs = dummyDocs;
+                    var data = JSON.stringify(obj, null, 2);
+                    response.status(200).render(
+                       'join_input',
+                       { title: "Join Operation", data: data}
+                    );
+                }
+            );
+        }
+    )
+})
+
+app.get("/treatment/join/result", function(resuest, response) {
+    patientJoin(function(joinDocs) {
+        console.log("join Docs content : \n" + JSON.stringify(joinDocs, null, 2));
+        db.documents.query(
+            qb.where(qb.and(qb.collection('treatment'), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
+                ).result(
+                    function(documents) {
+                        var results = documents;
+                        documents.forEach(function(document) {
+                            for (var i=0; i<joinDocs.length; i++) {
+                                var treatmentA = joinDocs[i].content.treatment;
+                                var treatmentB = document.content.treatment;
+                                if (isTreatmentEqual(treatmentA, treatmentB)) {
+                                    var j = documents.indexOf(document);
+                                    results[j].metadataValues = joinDocs[i].metadataValues;
+                                } else {
+                                    continue;
+                                }
+                            }
+                        })
+                        var data = JSON.stringify(documents, null, 3);
+                        response.status(200).render(
+                           'join_result',
+                           { title: 'Join Result', data: data}
+                        );
+                    }
+                );
+    });
+})
 
 app.get("/treatment/timeslice/input", function(request, response) {
     console.log('Get new GET request from ' + request.originalUrl);
