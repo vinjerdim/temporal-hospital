@@ -211,6 +211,7 @@ app.get("/treatment/select/input", function(request, response) {
     );
 });
 
+
 app.get("/treatment/select/result", function(request, response) {
     console.log('Get new GET request from ' + request.originalUrl);
     console.log('\t' + JSON.stringify(request.body));
@@ -246,6 +247,56 @@ app.get("/treatment/select/result", function(request, response) {
         } else {
             response.status(200).render(
                'selection_result',
+               { title: "Error! Unknown query parameter", data: []}
+            );
+        }
+    }
+});
+
+app.get("/treatment/diff/input", function(request, response) {
+    console.log('Get new GET request from ' + request.originalUrl);
+    console.log('\t' + JSON.stringify(request.body));
+
+    response.status(200).render(
+       'diff_input',
+       { title: 'Difference Algebra'}
+    );
+});
+
+app.get("/treatment/diff/result", function(request, response) {
+    console.log('Get new GET request from ' + request.originalUrl);
+    console.log('\t' + JSON.stringify(request.body));
+
+    var query = request.param('query');
+    var queryParams = query.split("=");
+    if (queryParams.length != 2) {
+        response.status(200).render(
+           'diff_result',
+           { title: "Error! Query should follow the form 'key=value'", data: []}
+        );
+    } else {
+        var queryKey = queryParams[0];
+        var queryValue = queryParams[1];
+
+        if (queryKey === "patient_id" || queryKey === "doctor_id" || queryKey === "disease" || queryKey === "room") {
+            db.documents.query(
+              qb.where(qb.and(qb.notIn(qb.collection('treatment'), qb.value(queryKey, queryValue)), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
+            ).result( 
+                function(documents) {
+                    console.log("Found " + documents.length + " documents : \n" + JSON.stringify(documents, null, 3));
+                    var data = JSON.stringify(documents, null, 3);
+                    response.status(200).render(
+                       'diff_result',
+                       { title: 'Difference Result', data: data}
+                    );
+                }, 
+                function(error) {
+                    console.log(JSON.stringify(error, null, 2));
+                }
+            );
+        } else {
+            response.status(200).render(
+               'diff_result',
                { title: "Error! Unknown query parameter", data: []}
             );
         }

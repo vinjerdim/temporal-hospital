@@ -1,0 +1,28 @@
+extends layout
+
+block content
+
+  br
+  form(action="/treatment/diff/result" method="GET" class="form-registration").main-section
+    br
+
+    .relation-1
+     .row
+      h3 Input Format (Key=Value)
+     .row
+      .col-sm-4
+        label(for="query") Query 
+        input(
+          type="text"
+          id="query"
+          name="query"
+          class="form-control"
+        )
+        .col-sm-2
+        input(
+          type="submit"
+          value='Go!'
+          class="btn btn-lg btn-primary btn-block"
+        )
+    br
+
