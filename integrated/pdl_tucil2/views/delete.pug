@@ -2,47 +2,39 @@ extends layout
 
 block content
 
-  br
-  form(action="." method="POST" class="form-registration").main-section
-    .row
-      .col-sm-3
-        label(for="doctor-1") Doctor
-        input(
-          type="text"
-          id="doctor-1"
-          name="doctor-1"
-          class="form-control"
-        )
-      .col-sm-3
-        label(for="patient-1") Patient
-        input(
-          type="text"
-          id="patient-1"
-          name="patient-1"
-          class="form-control"
-        )
-      .col-sm-3
-        label(for="room-1") Room 
-        input(
-          type="text"
-          id="room-1"
-          name="room-1"
-          class="form-control"
-        )
-      .col-sm-3
-        label(for="disease-1") Disease          
-        input(
-          type="text"
-          id="disease-1"
-          name="disease-1"
-          class="form-control"
-        )
-    br
-
-    .row
-     .col-sm-2.offset-sm-5
-      input(
-        type="submit"
-        value="Delete"
-        class="btn btn-lg btn-primary btn-block"
-      )
+    table.table-fill.treatment
+      thead
+        tr
+          th.text-left no 
+          th.text-left patient_id
+          th.text-left doctor_id
+          th.text-left room
+          th.text-left disease
+          th.text-left valid_start
+          th.text-left valid_end
+          th.text-left action
+      tbody.table-hover
+       - var d = JSON.parse(data)
+       each val, index in d 
+        tr
+          - var x = val.content.treatment
+          - var y = val.metadataValues
+          td.text-left= index+1 
+          td.text-left= x.patient_id 
+          td.text-left= x.doctor_id 
+          td.text-left= x.room 
+          td.text-left= x.disease
+          td.text-left= y.validStart
+          td.text-left= y.validEnd 
+          td.col-sm-2.offset-sm-5
+            form(action="/treatment/delete" method="POST")
+              input(
+                type="hidden"
+                name="uri"
+                value= val.uri
+              ) 
+              input(
+                type="submit"
+                value="Delete"
+                class="btn btn-lg btn-primary btn-block"
+              )

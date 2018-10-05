@@ -26,22 +26,22 @@ routes(app);
 //=============================== INLINE API ================================
 
 app.get("/treatment/latest", function(request, response) {
-        db.documents.query(
+    db.documents.query(
         qb.where(qb.and(qb.collection('treatment'), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
     ).result(
-                function(documents) {
-                        console.log("All  " + documents.length + " documents : \n" + JSON.stringify(documents, null, 3));
-                        var data = JSON.stringify(documents, null, 3);
-                        response.render(
-                           'treatment1',
-                           { title: 'Latest Treatments', data: data}
-                        );
-                }
-        );
+        function(documents) {
+            console.log("All  " + documents.length + " documents : \n" + JSON.stringify(documents, null, 3));
+            var data = JSON.stringify(documents, null, 3);
+            response.render(
+               'treatment1',
+               { title: 'Latest Treatments', data: data}
+            );
+        }
+    );
 });
 
 app.get("/treatment/all", function(request, response) {
-        db.documents.query(
+    db.documents.query(
         qb.where(qb.collection('treatment')).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
     ).result(
                 function(documents) {
@@ -166,9 +166,38 @@ app.post("/treatment/update", function(request, response) {
 });
 
 app.get("/treatment/delete", function(request, response) {
-    response.render(
-       'delete',
-       { title: 'Delete a Record'}
+    db.documents.query(
+        qb.where(qb.and(qb.collection('treatment'), qb.collection('latest'))).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
+    ).result(
+        function(documents) {
+            console.log("All  " + documents.length + " documents : \n" + JSON.stringify(documents, null, 3));
+            var data = JSON.stringify(documents, null, 3);
+            response.render(
+               'delete',
+               { title: 'Delete a Record', data: data}
+            );
+        }
+    );
+});
+
+app.post("/treatment/delete", function(request, response) {
+    console.log('Get new POST request from ' + request.originalUrl);
+    console.log('\t' + JSON.stringify(request.body));
+
+    var docuri =  request.body.uri;
+    console.log("Document uri to delete : " + docuri);
+    db.documents.remove({
+        uris: [docuri],
+        temporalCollection: 'treatment'
+    }).result(
+        function(result) {
+            console.log("Delete result : " + JSON.stringify(result, null, 3));
+            console.log("\nSuccessfully deleted document with uri : " + docuri);
+            response.status(200).redirect("/treatment/all");
+        },
+        function(error) {
+            console.log(JSON.stringify(error, null, 2));
+        }
     );
 });
 
