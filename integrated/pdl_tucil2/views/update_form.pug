@@ -1,0 +1,135 @@
+extends layout
+
+block content
+
+  br
+  .row
+    h3 Before 
+  .row
+    - var d = JSON.parse(data)
+    .col-sm-3
+      label(for="doctor-1") Doctor
+      input(
+        type="text"
+        id="doctor-1"
+        value= d.content.treatment.doctor_id
+        class="form-control"
+      )
+    .col-sm-3
+      label(for="patient-1") Patient
+      input(
+        type="text"
+        id="patient-1"
+        value= d.content.treatment.patient_id
+        class="form-control"
+      )
+    .col-sm-3
+      label(for="room-1") Room 
+      input(
+        type="text"
+        id="room-1"
+        value= d.content.treatment.room
+        class="form-control"
+      )
+    .col-sm-3
+      label(for="disease-1") Disease          
+      input(
+        type="text"
+        id="disease-1"
+        value= d.content.treatment.disease
+        class="form-control"
+      )
+  br
+  .row
+    .col-sm-6
+      label(for="start-time") Start Time
+    .col-sm-6
+      label(for="end-time") End Time
+  .row
+    .col-sm-4
+      input(
+        type="text"
+        id="start-time"
+        value= d.metadataValues.validStart
+        class="form-control"
+      )
+    .col-sm-4
+      input(
+        type="text"
+        id="end-time"
+        value= d.metadataValues.validEnd
+        class="form-control"
+      )
+  br
+  form(action="/treatment/update" method="POST" class="form-registration").main-section
+    .row
+      h3 After 
+    .row
+      .col-sm-3
+        label(for="doctor-1") Doctor
+        input(
+          type="text"
+          id="doctor-1"
+          name="doctor_id"
+          class="form-control"
+        )
+      .col-sm-3
+        label(for="patient-1") Patient
+        input(
+          type="text"
+          id="patient-1"
+          name="patient_id"
+          class="form-control"
+        )
+      .col-sm-3
+        label(for="room-1") Room 
+        input(
+          type="text"
+          id="room-1"
+          name="room"
+          class="form-control"
+        )
+      .col-sm-3
+        label(for="disease-1") Disease          
+        input(
+          type="text"
+          id="disease-1"
+          name="disease"
+          class="form-control"
+        )
+    br
+
+    .row
+      .col-sm-6
+        label(for="start-time") Start Time
+      .col-sm-6
+        label(for="end-time") End Time
+    .row
+      .col-sm-4
+        input(
+          type="text"
+          id="start-time"
+          name="valid_start"
+          class="form-control"
+        )
+      .col-sm-4
+        input(
+          type="text"
+          id="end-time"
+          name="valid_end"
+          class="form-control"
+        )
+    br
+
+    .row
+     .col-sm-2.offset-sm-5
+      input(
+        type="hidden"
+        name="uri"
+        value= d.uri
+      ) 
+      input(
+        type="submit"
+        value="Update"
+        class="btn btn-lg btn-primary btn-block"
+      )
