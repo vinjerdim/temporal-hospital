@@ -59,30 +59,6 @@ function load_treatment() {
                 'validStart': treatment.valid_start,
                 'validEnd': treatment.valid_end
             }
-            //'collections' : ['treatment']
-        };
-        insertRecord(record);
-    });
-}
-
-function load_treatment_diff() {
-    const treatments = require("./treatment_diff.json");
-    treatments.forEach(treatment => {
-        var record = {
-            'uri' : `/treatment_diff/${treatment.patient_id}_${treatment.doctor_id}_${treatment.valid_start}_${treatment.valid_end}`,
-            'temporalCollection': 'treatment_diff',
-            'content' : {
-                'treatment': {
-                    'patient_id': treatment.patient_id,
-                    'doctor_id': treatment.doctor_id,
-                    'room': treatment.room,
-                    'disease': treatment.disease
-                }
-            },
-            'metadataValues': {
-                'validStart': treatment.valid_start,
-                'validEnd': treatment.valid_end
-            }
         };
         insertRecord(record);
     });
@@ -115,7 +91,6 @@ router.get('/load', function (request, response) {
     load_patients();
     load_doctors();
     load_treatment();
-    load_treatment_diff();
     load_treatment_union();
     response.send('Database initialized');
 });
