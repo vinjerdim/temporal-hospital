@@ -452,6 +452,38 @@ app.get("/treatment/union/result", function(request, response) {
     });
 });
 
+app.get("/treatment/timeslice/input", function(request, response) {
+    console.log('Get new GET request from ' + request.originalUrl);
+    console.log('\t' + JSON.stringify(request.body));
+
+    response.status(200).render(
+       'timeslice_input',
+       { title: 'Time-Slice Algebra'}
+    );
+});
+
+
+app.get("/treatment/timeslice/result", function(request, response) {
+    var time = request.param('time');
+    db.documents.query(
+        qb.where(
+            qb.periodRange('valid', 'aln_contains', qb.period(time)),
+            qb.and(qb.collection('treatment'),qb.collection('latest'))
+        ).withOptions({categories: ['content', 'collections', 'metadata-values']}).slice(1, 99999999)
+    ).result( 
+        function(documents) {
+            console.log("Found documents : \n" + JSON.stringify(documents, null, 3));
+            var data = JSON.stringify(documents, null, 3);
+            response.status(200).render(
+               'timeslice_result',
+               { title: 'Time-Slice Result', data: data}
+            );
+        }, 
+        function(error) {
+            console.log(JSON.stringify(error, null, 2));
+        }
+    );
+});
 
 //========================== END INLINE API ================================
 app.listen(port);

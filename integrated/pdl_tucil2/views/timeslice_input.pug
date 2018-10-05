@@ -1,0 +1,28 @@
+extends layout
+
+block content
+
+  br
+  form(action="/treatment/timeslice/result" method="GET" class="form-registration").main-section
+    br
+
+    .relation-1
+     .row
+      h3 Input Format (in UTC/ISO format)
+     .row
+      .col-sm-4
+        label(for="query") Time 
+        input(
+          type="text"
+          id="query"
+          name="time"
+          class="form-control"
+        )
+        .col-sm-2
+        input(
+          type="submit"
+          value='Go!'
+          class="btn btn-lg btn-primary btn-block"
+        )
+    br
+
