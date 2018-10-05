@@ -20,9 +20,19 @@ function getRecord(response, operator, startTime, endTime) {
         ).withOptions({categories: ['content', 'metadata-values']})
     ).result(function(results) {
         console.log(JSON.stringify(results, null, 2));
-        response.status(200).send(results);
+        response.render(
+            'allen',
+            { title: 'Allen\'s Interval', data: results}
+        );
     });	
 }
+
+router.get('/', function (request, response) {
+    response.render(
+        'allen',
+        { title: 'Allen\'s Interval'}
+    );
+});
 
 router.get('/equals/:start/:end', function (request, response) {
     var startTime = request.params.start;

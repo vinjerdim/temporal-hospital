@@ -3,55 +3,73 @@ extends layout
 block content
 
   br
-  form(action="." method="POST" class="form-registration").main-section
+  form(method="GET" class="form-registration").main-section.allen
     .row
       .col-sm-6
         label(for="start") Start Time
       .col-sm-6
         label(for="end-time") End Time
     .row
-      .col-sm-2
+      .col-sm-6
         input(
           type="text"
           id="start-time"
-          name="start-time"
+          name="start"
           class="form-control"
         )
-      .col-sm-4.date-picker
-        .input-group.date(data-provide="datepicker" data-date-container=".date-picker")
-          input(type="text").form-control
-          .input-group-addon
-            span.glyphicon.glyphicon-calendar
-      .col-sm-2
+      .col-sm-6
         input(
           type="text"
           id="end-time"
-          name="end-time"
-          class="form-control"
-        )
-      .col-sm-4
-        input(
-          type="text"
-          id="end-time"
-          name="end-time"
+          name="end"
           class="form-control"
         )
     br
 
-    .row
+  .row
      .col-sm-2.offset-sm-4
       select.selectpicker
-        option Before Y 
-        option Meets Y
-        option Overlaps Y 
-        option During Y 
-        option Starts Y 
-        option Finishes Y 
-        option Equal Y 
+        option equals
+        option contains 
+        option contained_by 
+        option meets 
+        option met_by 
+        option before 
+        option after 
+        option starts 
+        option started_by
+        option finishes 
+        option finished_by 
+        option overlaps 
+        option overlapped_by
 
      .col-sm-2
       input(
         type="submit"
         value="Go Allen!"
         class="btn btn-lg btn-primary btn-block"
-      )
+      ).submit-allen
+
+  table.table-fill.treatment
+      thead
+        tr
+          th.text-left no 
+          th.text-left patient_id
+          th.text-left doctor_id
+          th.text-left room
+          th.text-left disease
+          th.text-left valid_start
+          th.text-left valid_end
+      tbody.table-hover
+       - var d = data || []
+       each val, index in d 
+        tr
+          - var x = val.content.treatment
+          - var y = val.metadataValues
+          td.text-left= index+1 
+          td.text-left= x.patient_id 
+          td.text-left= x.doctor_id 
+          td.text-left= x.room 
+          td.text-left= x.disease
+          td.text-left= y.validStart
+          td.text-left= y.validEnd 
